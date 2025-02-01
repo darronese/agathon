@@ -6,5 +6,7 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0"
 coordinate-altitude = "0.1"
+delaunator = "0.1"
 nannou = "0.19"
+nannou_egui = "0.19"
 rust_decimal = "1.36"

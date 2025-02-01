@@ -20,9 +20,9 @@ pub fn get_elevations(centre: Coord, rows: usize, cols: usize, step: f64) -> Vec
         })
         .collect::<Vec<Vec<Coord>>>();
 
-    coords
-        .iter_mut()
-        .for_each(|row| coordinate_altitude::add_altitude(row).unwrap());
+    for row in coords.iter_mut() {
+        coordinate_altitude::add_altitude(row).unwrap();
+    }
 
     coords
         .iter()
