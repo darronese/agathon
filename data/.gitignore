@@ -1,0 +1,3 @@
+/input_data/meteorological_data/*.csv
+/input_data/swe_data/*.csv
+/input_data/additional_test_locations/*.csv
