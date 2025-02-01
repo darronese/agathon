@@ -2,7 +2,7 @@ from tkinter import *
 from tkinter import ttk
 
 # Create the main window
-root = Tk()
+root = tk.Tk()
 root.title("Snowpack Prediction")  # Set window title
 root.geometry("400x300")  # Set window size (width x height)
 
