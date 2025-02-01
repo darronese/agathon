@@ -8,6 +8,7 @@ pkgs.mkShell rec {
   buildInputs = with pkgs; [
     alsa-lib
     libGL
+    libxkbcommon
     udev
     vulkan-loader
     xorg.libX11
