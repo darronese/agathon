@@ -1,3 +1,4 @@
+# separateCSV.py
 import os
 import pandas as pd
 from pathlib import Path
@@ -18,12 +19,24 @@ def split_data_by_coordinates(input_csv):
     # Read the CSV file
     df = pd.read_csv(input_csv_path)
 
+    # Clean up column names (convert to lowercase and remove spaces)
+    df.columns = df.columns.str.strip().str.lower()
+
+    # Check if 'date' column exists
+    if 'date' not in df.columns:
+        print("Error: The CSV file must contain a 'date' column.")
+        print(f"Available columns: {df.columns}")
+        return
+
+    # Ensure 'date' is in datetime format
+    df['date'] = pd.to_datetime(df['date'], errors='coerce')
+
     # Create the output directory for CSV files (relative to the script's location)
     output_csv_folder = Path(__file__).parent / "output_csv"
     output_csv_folder.mkdir(parents=True, exist_ok=True)  # Create folder if it doesn't exist
 
-    # Group by unique (Latitude, Longitude) pairs and save them to different CSV files
-    grouped = df.groupby(['Latitude', 'Longitude'])
+    # Group by unique (latitude, longitude) pairs and save them to different CSV files
+    grouped = df.groupby(['latitude', 'longitude'])
 
     # Iterate through each group and save it in the output_csv folder
     for (lat, lon), group in grouped:

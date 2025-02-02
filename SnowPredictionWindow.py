@@ -1,186 +1,149 @@
-from pathlib import Path
-from tkinter import Tk, Canvas, Button, PhotoImage, filedialog  # Import filedialog for file selection
-import os
-import pandas as pd
-from separateCSV import split_data_by_coordinates  # Import the function to split CSV
+if __name__ == "__main__":
+    import os
+    from pathlib import Path
+    import matplotlib.pyplot as plt
+    from tkinter import Tk, Canvas, Button, PhotoImage, Entry, Label, Spinbox, StringVar
+    from tkinter import filedialog
+    from tkinter import messagebox
+    from buttonFunction import open_file_dialog, continue_button_action
 
+    # Get the current directory where the script is located
+    OUTPUT_PATH = Path(__file__).parent
+    OUTPUT_CSV_PATH = OUTPUT_PATH / "output_csv"  # Directory containing the CSV files
 
-# Get the current directory where the script is located
-OUTPUT_PATH = Path(__file__).parent
+    # Define the relative assets path
+    ASSETS_PATH = OUTPUT_PATH / "assets" / "frame0"
 
-# Define the relative assets path
-ASSETS_PATH = OUTPUT_PATH / "assets" / "frame0"  # Assuming the folder is in the same directory as the script
+    # Function to clear the output directory
+    def clear_output_directory(directory_path):
+        try:
+            # List all files in the directory
+            files_in_directory = os.listdir(directory_path)
+            
+            # Loop through each file and remove it
+            for file_name in files_in_directory:
+                file_path = os.path.join(directory_path, file_name)
+                
+                # Check if it's a file (not a directory) before attempting to remove it
+                if os.path.isfile(file_path):
+                    os.remove(file_path)
+            
+            print(f"All files in '{directory_path}' have been deleted.")
+        except Exception as e:
+            print(f"Error clearing the output directory: {e}")
 
+    # Call the function to clear the output directory when the program starts
+    clear_output_directory(OUTPUT_CSV_PATH)
 
-def relative_to_assets(path: str) -> Path:
-    # Combine the relative path with the assets directory
-    return ASSETS_PATH / Path(path)
+    # Tkinter window setup code here
+    window = Tk()
+    window.geometry("866x537")
+    window.resizable(False, False)
+    window.configure(bg="#FFFFFF")
 
-
-window = Tk()
-
-window.geometry("866x537")
-window.configure(bg="#FFFFFF")
-
-canvas = Canvas(
-    window,
-    bg="#FFFFFF",
-    height=537,
-    width=866,
-    bd=0,
-    highlightthickness=0,
-    relief="ridge"
-)
-
-canvas.place(x=0, y=0)
-
-# Use the relative path to load the image
-image_image_1 = PhotoImage(
-    file=relative_to_assets("image_1.png"))
-image_1 = canvas.create_image(
-    240.0,
-    250.0,
-    image=image_image_1
-)
-
-# Retrieve the image size
-image_width = image_image_1.width()
-image_height = image_image_1.height()
-
-canvas.create_text(
-    40.0,
-    40.0,
-    anchor="nw",
-    text="Snowpack Predictor",
-    fill="#000000",
-    font=("Ubuntu Regular", 32 * -1)
-)
-
-# Button 1 (file selection button with text instead of image)
-fileSelector = Button(
-    window,
-    text="Select CSV File",  # Default text on the button
-    font=("Arial", 14),    # Text font for the button
-    bg="#D9D9D9",          # Background color to make the text visible
-    wraplength=177,         # Ensures the text doesn't overflow and wraps inside the button
-    relief="flat",         # Flat style to remove borders
-    height=3,              # Increase the height to make it more readable
-    width=20               # Adjust the width to make it look nicer
-)
-
-# Set the button size to be exactly the size of the image
-fileSelector.place(
-    x=240.0 - image_width / 2,  # Adjusting x position to center the button
-    y=250.0 - image_height / 2,  # Adjusting y position to center the button
-    width=image_width,  # Button width matches the image width
-    height=image_height  # Button height matches the image height
-)
-
-# Function to open the file dialog and select a CSV file
-def open_file_dialog():
-    file_path = filedialog.askopenfilename(
-        filetypes=[("CSV Files", "*.csv")]  # Limit file selection to CSV files
+    canvas = Canvas(
+        window,
+        bg="#FFFFFF",
+        height=537,
+        width=866,
+        bd=0,
+        highlightthickness=0,
+        relief="ridge"
     )
-    
-    # If a file is selected (file_path is not empty)
-    if file_path:
-        # Update Button 1 text with the full file path
-        fileSelector.config(text=file_path)  # Button 1's text becomes the file path
-        
-        # Show the Continue button after file selection
-        continue_button.place(
-            x=240.0 - image_width / 2,  # Same X position as Button 1
-            y=250.0 + image_height / 2 + 10,  # Place it just below Button 1
-            width=image_width / 2 - 5,  # Button width adjusted to take half of Button 1's width
-            height=50  # Adjust height to make it look nice
-        )
-        
-        # Hide the Deselect button after file selection
-        deselect_button.place_forget()
 
-# Attach the open_file_dialog function to Button 1's command
-fileSelector.config(command=open_file_dialog)
+    canvas.place(x=0, y=0)
 
-# Rectangle (existing)
-canvas.create_rectangle(
-    500.0,
-    173.0,
-    677.0,
-    395.0,
-    fill="#D9D9D9",
-    outline=""
-)
+    # Use the relative path to load the image
+    image_image_1 = PhotoImage(file=ASSETS_PATH/"image_1.png")
+    image_1 = canvas.create_image(240.0, 250.0, image=image_image_1)
 
-# Function for Continue button
-def continue_button_action():
-    # Get the selected file path
-    selected_file = fileSelector.cget("text")
-    
-    # Check if a file is selected and it ends with ".csv"
-    if selected_file and selected_file.endswith(".csv"):
-        # Call the split_data_by_coordinates function for CSV file separation
-        split_data_by_coordinates(selected_file)  # Only separate the CSV file
-        
-        # Hide Button 1 (File Selector button)
-        fileSelector.place_forget()
-        
-        # Hide the Continue button
-        continue_button.place_forget()
+    # Retrieve the image size
+    image_width = image_image_1.width()
+    image_height = image_image_1.height()
 
-        # Show the Deselect button after pressing Continue
-        deselect_button.place(
-            x=240.0 - image_width / 2,  # Same X position as Button 1
-            y=250.0 + image_height / 2 + 10,  # Just below Button 1
-            width=image_width / 2 - 5,  # Button width adjusted to take half of Button 1's width
-            height=50  # Adjust height to make it look nice
-        )
-    else:
-        # If no file is selected or it's not a valid CSV file, show an error
-        print("Please select a valid CSV file.")
+    canvas.create_text(
+        40.0,
+        40.0,
+        anchor="nw",
+        text="Snowpack Predictor",
+        fill="#000000",
+        font=("Ubuntu Regular", 32 * -1)
+    )
 
-# Add the Continue button (initially hidden)
-continue_button = Button(
-    window,
-    text="Continue",  # Text on the button
-    font=("Arial", 14),  # Text font for the button
-    bg="#D9D9D9",  # Button background color
-    relief="flat",  # Flat style to remove borders
-    height=2,  # Adjust the height to make it look nicer
-    width=20  # Adjust the width to make it look nicer
-)
-continue_button.place_forget()  # Initially hide the button
+    # Button 1 (file selection button with text instead of image)
+    fileSelector = Button(
+        window,
+        text="Select CSV File",
+        font=("Arial", 14),
+        bg="#D9D9D9",
+        wraplength=177,
+        relief="flat",
+        height=3,
+        width=20
+    )
 
-# Attach the continue_button_action function to the Continue button
-continue_button.config(command=continue_button_action)
-
-# Function for Deselect button (clear the file selection)
-def deselect_file():
-    # Clear the file path from Button 1
+    # Set the button size to be exactly the size of the image
     fileSelector.place(
-        x=240.0 - image_width / 2,  # Adjusting x position to center the button
-        y=250.0 - image_height / 2,  # Adjusting y position to center the button
-        width=image_width,  # Button width matches the image width
-        height=image_height  # Button height matches the image height
+        x=240.0 - image_width / 2,
+        y=250.0 - image_height / 2,
+        width=image_width,
+        height=image_height
     )
-    fileSelector.config(text="Select CSV File")
-    
-    # Hide the Deselect button
-    deselect_button.place_forget()
 
-# Add the Deselect button (initially hidden)
-deselect_button = Button(
-    window,
-    text="Deselect File",  # Text on the button
-    font=("Arial", 14),  # Text font for the button
-    bg="#D9D9D9",  # Button background color
-    relief="flat",  # Flat style to remove borders
-    height=2,  # Adjust the height to make it look nicer
-    width=20  # Adjust the width to make it look nicer
-)
-deselect_button.place_forget()  # Initially hide the button
+    # Add the Continue button (initially hidden)
+    continue_button = Button(
+        window,
+        text="Continue",
+        font=("Arial", 14),
+        bg="#D9D9D9",
+        relief="flat",
+        height=2,
+        width=20
+    )
+    continue_button.place_forget()
 
-# Attach the deselect_file function to the Deselect button
-deselect_button.config(command=deselect_file)
+    # Latitude Entry
+    latitude_label = Label(window, text="Latitude:", font=("Arial", 12))
+    latitude_label.place(x=650, y=100)
 
-# Start the Tkinter event loop
-window.mainloop()
+    # Use StringVar to track the latitude input
+    latitude_var = StringVar()
+    latitude_entry = Entry(window, textvariable=latitude_var, font=("Arial", 12))
+    latitude_entry.place(x=650, y=130, width=180)
+
+    # Longitude Entry
+    longitude_label = Label(window, text="Longitude:", font=("Arial", 12))
+    longitude_label.place(x=650, y=160)
+
+    # Use StringVar to track the longitude input
+    longitude_var = StringVar()
+    longitude_entry = Entry(window, textvariable=longitude_var, font=("Arial", 12))
+    longitude_entry.place(x=650, y=190, width=180)
+
+    # Year Selector (Using Spinbox for year selection)
+    year_label = Label(window, text="Select Year:", font=("Arial", 12))
+    year_label.place(x=650, y=220)
+
+    # Use StringVar to track the year selection
+    year_var = StringVar()
+    year_selector = Spinbox(window, from_=1990, to=2100, textvariable=year_var, width=10, font=("Arial", 12))
+    year_selector.place(x=650, y=250)
+
+    # Fetch and plot data function
+    def updateVars():
+        """Wrapper function to fetch based on user inputs."""
+        global latitude, longitude, date
+        # Update the global variables with the current values from the input fields
+        latitude = latitude_var.get()
+        longitude = longitude_var.get()
+        date = year_var.get()
+
+    # Attach the open_file_dialog function to Button 1's command
+    fileSelector.config(command=lambda: open_file_dialog(fileSelector, continue_button, image_width, image_height))
+
+    # Attach the continue_button_action function to the Continue button
+    continue_button.config(command=lambda: (updateVars(), continue_button_action(fileSelector, continue_button, image_width, image_height, latitude, longitude, date)))
+
+    # Start the Tkinter event loop
+    window
+    window.mainloop()
