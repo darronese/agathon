@@ -64,5 +64,6 @@ if __name__ == "__main__":
     df["date"] = pd.to_datetime(
         df["year"].astype(str) + df["day"].astype(str), format="%Y%j"
     )
+    df.loc[df["date"].dt.month.between(6, 11), "swe_prediction"] = 0  # type: ignore
     df = df[["date", "latitude", "longitude", "swe_prediction"]]
     df.to_csv("predictions.csv", index=False)  # type: ignore
