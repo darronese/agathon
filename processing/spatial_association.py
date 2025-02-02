@@ -14,9 +14,10 @@ if __name__ == "__main__":
             "Station": "station",
             "Latitude": "latitude",
             "Longitude": "longitude",
+            "Elevation": "elevation",
+            "Southness": "southness",
         }
     )
-    si_df = si_df.drop(columns=["Elevation", "Southness"])
     m_df = pd.DataFrame(pd.read_hdf(mdata_path, key="key"))
 
     print("removing duplicates...")
@@ -58,3 +59,5 @@ if __name__ == "__main__":
     print("saving results...")
     si_df.to_csv("spatial.csv", index=False)
     m_df.to_hdf("filtered_m_data.hd5", key="key", mode="w")
+
+    print(m_df)
