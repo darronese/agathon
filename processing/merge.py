@@ -44,11 +44,30 @@ if __name__ == "__main__":
     print("filtering...")
     final_df = final_df.dropna(subset=["swe"])
 
+    final_df = final_df[
+        [
+            "date",
+            "latitude",
+            "longitude",
+            "swe",
+            "precip",
+            "tmin",
+            "tmax",
+            "sph",
+            "srad",
+            "rmax",
+            "rmin",
+            "windspeed",
+            "elevation",
+            "southness",
+        ]
+    ]
+
     print("saving results (h5)...")
     final_df.to_hdf("data.h5", key="key", mode="w")
 
     print("saving results (csv)...")
-    final_df.to_csv("data.csv")
+    final_df.to_csv("data.csv", index=False)
 
     print(final_df)
-    print(final_df["swe"].isna().sum())
+    print(final_df["swe"].isna().sum())  # type: ignore
