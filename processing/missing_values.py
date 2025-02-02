@@ -64,7 +64,10 @@ if __name__ == "__main__":
         )
         m_cols.append(colname)
         m_dfs.append(df)
-    m_df = pd.concat(m_dfs, ignore_index=True)
+
+    m_df = m_dfs[0]
+    for df in m_dfs[1:]:
+        m_df = m_df.merge(df, on=["date", "latitude", "longitude"], how="outer")
 
     print("performing mean imputation...")
     for i, col in enumerate(m_cols):
@@ -75,3 +78,5 @@ if __name__ == "__main__":
     print("saving results...")
     swe_df.to_hdf("swe_data.h5", key="key", mode="w")
     m_df.to_hdf("m_data.h5", key="key", mode="w")
+
+    print(m_df)
