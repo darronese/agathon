@@ -1,8 +1,9 @@
 from pathlib import Path
-from tkinter import Tk, Canvas, Button, PhotoImage, Toplevel
-from tkinter import filedialog  # Import filedialog for file selection
-from tkcalendar import Calendar  # Import tkcalendar for date picker
+from tkinter import Tk, Canvas, Button, PhotoImage, filedialog  # Import filedialog for file selection
 import os
+import pandas as pd
+from separateCSV import split_data_by_coordinates  # Import the function to split CSV
+
 
 # Get the current directory where the script is located
 OUTPUT_PATH = Path(__file__).parent
@@ -10,9 +11,11 @@ OUTPUT_PATH = Path(__file__).parent
 # Define the relative assets path
 ASSETS_PATH = OUTPUT_PATH / "assets" / "frame0"  # Assuming the folder is in the same directory as the script
 
+
 def relative_to_assets(path: str) -> Path:
     # Combine the relative path with the assets directory
     return ASSETS_PATH / Path(path)
+
 
 window = Tk()
 
@@ -98,49 +101,6 @@ def open_file_dialog():
 # Attach the open_file_dialog function to Button 1's command
 fileSelector.config(command=open_file_dialog)
 
-# Button 2 (for date picker)
-dateSelector = Button(
-    window,
-    text="Select Date",  # Default text on the button
-    font=("Arial", 14),    # Text font for the button
-    bg="#D9D9D9",         # Button background color
-    relief="flat",         # Flat style to remove borders
-    height=2,              # Adjust the height to make it larger
-    width=20               # Adjust the width to make it look nicer
-)
-dateSelector.place(
-    x=500.0,
-    y=100.0,
-    width=177.0,
-    height=53.0
-)
-
-# Function to show the calendar
-def show_calendar():
-    # Create a top-level window for the calendar
-    calendar_window = Toplevel(window)
-    calendar_window.title("Select a Date")
-
-    # Create a Calendar widget
-    cal = Calendar(calendar_window, selectmode='day', date_pattern='mm/dd/yyyy')
-    cal.pack(padx=20, pady=20)
-
-    # Function to handle date selection
-    def select_date():
-        selected_date = cal.get_date()
-        
-        # Update Button 2 text with the selected date
-        dateSelector.config(text=selected_date)
-
-        calendar_window.destroy()  # Close the calendar window
-
-    # Add a button to confirm the selection
-    select_button = Button(calendar_window, text="Select Date", command=select_date)
-    select_button.pack(pady=10)
-
-# Attach the show_calendar function to Button 2's command
-dateSelector.config(command=show_calendar)
-
 # Rectangle (existing)
 canvas.create_rectangle(
     500.0,
@@ -153,20 +113,30 @@ canvas.create_rectangle(
 
 # Function for Continue button
 def continue_button_action():
-
-    # Hide Button 1
-    fileSelector.place_forget()
+    # Get the selected file path
+    selected_file = fileSelector.cget("text")
     
-    # Hide the Continue button
-    continue_button.place_forget()
+    # Check if a file is selected and it ends with ".csv"
+    if selected_file and selected_file.endswith(".csv"):
+        # Call the split_data_by_coordinates function for CSV file separation
+        split_data_by_coordinates(selected_file)  # Only separate the CSV file
+        
+        # Hide Button 1 (File Selector button)
+        fileSelector.place_forget()
+        
+        # Hide the Continue button
+        continue_button.place_forget()
 
-    # Show the Deselect button after pressing Continue
-    deselect_button.place(
-        x=240.0 - image_width / 2,  # Same X position as Button 1
-        y=250.0 + image_height / 2 + 10,  # Just below Button 1
-        width=image_width / 2 - 5,  # Button width adjusted to take half of Button 1's width
-        height=50  # Adjust height to make it look nice
-    )
+        # Show the Deselect button after pressing Continue
+        deselect_button.place(
+            x=240.0 - image_width / 2,  # Same X position as Button 1
+            y=250.0 + image_height / 2 + 10,  # Just below Button 1
+            width=image_width / 2 - 5,  # Button width adjusted to take half of Button 1's width
+            height=50  # Adjust height to make it look nice
+        )
+    else:
+        # If no file is selected or it's not a valid CSV file, show an error
+        print("Please select a valid CSV file.")
 
 # Add the Continue button (initially hidden)
 continue_button = Button(
@@ -212,7 +182,5 @@ deselect_button.place_forget()  # Initially hide the button
 # Attach the deselect_file function to the Deselect button
 deselect_button.config(command=deselect_file)
 
-# Run the window
-window.resizable(False, False)
-window.title("Snowpack Predictor")
+# Start the Tkinter event loop
 window.mainloop()
