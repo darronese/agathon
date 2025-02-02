@@ -1,5 +1,5 @@
 import pandas as pd
-import matplotlib.pyplot as plt
+import numpy as np
 import pickle
 from sklearn.experimental import enable_halving_search_cv
 from sklearn.model_selection import train_test_split, HalvingRandomSearchCV
@@ -39,8 +39,8 @@ if __name__ == "__main__":
     )
 
     params = {
-        "n_estimators": [100, 500, 1000],
-        "max_depth": [None, 10, 30],
+        "n_estimators": [100, 500, 1000, 2000],
+        "max_depth": [None, 10, 30, 50],
         "min_samples_split": [2, 5, 10],
         "min_samples_leaf": [1, 2, 4],
         "max_features": ["sqrt", "log2", None],
@@ -52,7 +52,7 @@ if __name__ == "__main__":
         param_distributions=params,
         factor=2,
         min_resources="smallest",
-        cv=2,
+        cv=3,
         scoring="neg_mean_squared_error",
         n_jobs=-1,
         verbose=2,
@@ -63,7 +63,7 @@ if __name__ == "__main__":
 
     best_rf = randomised_rf.best_estimator_
 
-    with open("model2.pkl", "wb") as f:
+    with open("mini.pkl", "wb") as f:
         pickle.dump(best_rf, f)
 
     y_pred = randomised_rf.predict(X_test)
@@ -71,12 +71,13 @@ if __name__ == "__main__":
     mse = mean_squared_error(y_test, y_pred)
     print(f"mse: {mse:.2f}")
 
-    importances = best_rf.feature_importances_
-    feature_names = X.columns
+    bias = np.mean(y_pred - y_test)
+    mean_y_test = np.mean(y_test)
+    relative_bias = (bias / mean_y_test) * 100
+    print(f"bias: {bias:.2f}")
+    print(f"relative bias: {relative_bias:.2f}%")
 
-    plt.figure(figsize=(10, 5))
-    plt.barh(feature_names, importances, color="purple")
-    plt.xlabel("Importance")
-    plt.ylabel("Feature")
-    plt.title("SWE Feature Importances")
-    plt.show()
+    squared_residuals = np.sum((y_pred - y_test) ** 2)
+    squared_deviations = np.sum((y_test - mean_y_test) ** 2)
+    nse = 1 - (squared_residuals / squared_deviations)
+    print(f"nse: {nse:.2f}")
