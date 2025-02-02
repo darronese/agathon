@@ -36,6 +36,8 @@ if __name__ == "__main__":
     map_df["matched_latitude"] = matched["latitude"].values
     map_df["matched_longitude"] = matched["longitude"].values
 
+    map_df.to_csv("mapping.csv", index=False)
+
     print("creating mapping...")
     si_to_m = {
         (row["latitude"], row["longitude"]): (
@@ -57,7 +59,7 @@ if __name__ == "__main__":
     m_df = m_df.merge(si_df, on=["latitude", "longitude"], how="inner")
 
     print("saving results...")
-    si_df.to_csv("spatial.csv", index=False)
-    m_df.to_hdf("filtered_m_data.hd5", key="key", mode="w")
+    si_df.to_csv("snotels.csv", index=False)
+    m_df.to_hdf("part2.h5", key="key", mode="w")
 
     print(m_df)
