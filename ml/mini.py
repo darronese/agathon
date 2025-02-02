@@ -78,6 +78,6 @@ if __name__ == "__main__":
     print(f"relative bias: {relative_bias:.2f}%")
 
     squared_residuals = np.sum((y_pred - y_test) ** 2)
-    squared_deviations = np.sum((y_test - mean_y_test) ** 2)
+    squared_deviations = np.sum((y_test - mean_y_test) ** 2)  # type: ignore
     nse = 1 - (squared_residuals / squared_deviations)
     print(f"nse: {nse:.2f}")
