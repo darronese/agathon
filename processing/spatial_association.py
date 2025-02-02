@@ -52,5 +52,9 @@ if __name__ == "__main__":
         lambda row: pd.Series(mapping(row)), axis=1
     )
 
+    print("filtering meteorological data...")
+    m_df = m_df.merge(si_df, on=["latitude", "longitude"], how="inner")
+
     print("saving results...")
     si_df.to_csv("spatial.csv", index=False)
+    m_df.to_hdf("filtered_m_data.hd5", key="key", mode="w")
