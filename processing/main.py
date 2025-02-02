@@ -1,6 +1,7 @@
 import pandas as pd
 import glob
 import os
+from scipy.spatial import cKDTree
 
 DATA_PATH = "/scratch/project/hackathon/data/SnowpackPredictionChallenge/input_data/"
 
@@ -23,21 +24,101 @@ def path_to_column_name(path):
 
 
 if __name__ == "__main__":
-    csv_paths = glob.glob(f"{DATA_PATH}/meteorological_data/*.csv")
+    swedata_path = f"{DATA_PATH}/swe_data/SWE_values_all.csv"
+    mdata_paths = glob.glob(f"{DATA_PATH}/meteorological_data/*.csv")
+    sidata_path = f"{DATA_PATH}/swe_data/Station_Info.csv"
 
-    dfs = []
-    for path in csv_paths:
-        df = pd.read_csv(path)
-        df = df.rename(
-            columns={"variable_value": path_to_column_name(path)[16:].lower()}
+    print("processing swe data...")
+    swe_df = pd.read_csv(swedata_path)
+    swe_df = swe_df.rename(
+        columns={
+            "Date": "date",
+            "SWE": "swe",
+            "Latitude": "latitude",
+            "Longitude": "longitude",
+        }
+    )
+    swe_df = swe_df[["date", "latitude", "longitude", "swe"]]
+
+    print("processing station data...")
+    si_df = pd.read_csv(sidata_path)
+    si_df = si_df.drop(columns=["Station"])
+    si_df = si_df.rename(
+        columns={
+            "Latitude": "latitude",
+            "Longitude": "longitude",
+            "Elevation": "elevation",
+            "Southness": "southness",
+        }
+    )
+    swe_df = swe_df.merge(si_df, on=["latitude", "longitude"], how="outer")
+
+    print("processing meteorological data...")
+    m_dfs = []
+    for path in mdata_paths:
+        si_df = pd.read_csv(path)
+        si_df = si_df.rename(
+            columns={
+                "lat": "latitude",
+                "lon": "longitude",
+                "variable_value": path_to_column_name(path)[16:].lower(),
+            }
         )
-        dfs.append(df)
+        m_dfs.append(si_df)
+    m_df = pd.concat(m_dfs, ignore_index=True)
 
-    merged_df = dfs[0]
-    for df in dfs[1:]:
-        merged_df = merged_df.merge(df, on=["date", "lat", "lon"], how="outer")
+    print("mapping coordinates...")
+    swe_coords = swe_df[["latitude", "longitude"]].drop_duplicates().to_numpy()
+    m_coords = m_df[["latitude", "longitude"]].drop_duplicates().to_numpy()
 
-    merged_df.to_csv("data1.csv", index=False)
+    tree = cKDTree(m_coords)
+    _, nearest_idx = tree.query(swe_coords)
+    matched = m_df.iloc[nearest_idx].reset_index(drop=True)
+    coord_mapping = dict(
+        zip(
+            [tuple(coord) for coord in swe_coords],
+            [tuple(coord) for coord in matched[["latitude", "longitude"]].to_numpy()],
+        )
+    )
+
+    def transform_coords(row, mapping):
+        return mapping.get(
+            (row["latitude"], row["longitude"]), (row["latitude"], row["longitude"])
+        )
+
+    print("transforming...")
+    swe_df[["latitude", "longitude"]] = swe_df.apply(
+        transform_coords, axis=1, mapping=coord_mapping, result_type="expand"
+    )
+
+    print("merging...")
+    res = pd.merge(m_df, swe_df, on=["date", "latitude", "longitude"], how="left")
+    res.to_csv("data1.csv", index=False)
+
+    """
+    # locate nearest coords for swe values
+    tree = cKDTree(m_df[["latitude", "longitude"]].to_numpy())
+    _, nearest_idx = tree.query(swe_df[["latitude", "longitude"]].to_numpy())
+    matched = m_df.iloc[nearest_idx].reset_index(drop=True)
+    res_df = swe_df.copy()
+    res_df["matched_latitude"] = matched["latitude"]
+    res_df["matched_longitude"] = matched["longitude"]
+    res_df = res_df.merge(
+        m_df,
+        left_on=["date, matched_latitude, matched_longitude"],
+        right_on=["date", "latitude", "longitude"],
+        how="left",
+    )
+    res_df = res_df.drop(columns=["latitude", "longitude"])
+    res_df = res_df.rename(
+        columns={
+            "matched_latitude": "latitude",
+            "matched_longitude": "longitude",
+        }
+    )
+
+    res_df.to_csv("data1.csv", index=False)
+    """
 
 """
 # https://www.geeksforgeeks.org/working-with-missing-data-in-pandas/

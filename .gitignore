@@ -172,3 +172,4 @@ cython_debug/
 
 # large csv data files
 /input_data/**/*.csv
+/output_data/**/*.csv

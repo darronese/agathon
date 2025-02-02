@@ -1,7 +1,7 @@
 { pkgs ? import <nixpkgs> { } }:
 
 let
-  python = pkgs.python3.withPackages (ps: with ps; [ pandas ]);
+  python = pkgs.python3.withPackages (ps: with ps; [ pandas scipy ]);
 in
 pkgs.mkShell {
   buildInputs = [
