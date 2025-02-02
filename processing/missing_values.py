@@ -2,7 +2,7 @@ import pandas as pd
 import glob
 import os
 
-DATA_PATH = "/scratch/project/hackathon/data/SnowpackPredictionChallenge/input_data/"
+DATA_PATH = "/scratch/project/hackathon/data/SnowpackPredictionChallenge/input_data"
 
 
 """
@@ -72,6 +72,6 @@ if __name__ == "__main__":
         mean = m_df[col].mean()
         m_df[col] = m_df[col].fillna(mean)
 
-    print("saving data...")
-    swe_df.to_hdf("swe_data.h5", key="stage", mode="w")
-    m_df.to_hdf("m_data.h5", key="stage", mode="w")
+    print("saving results...")
+    swe_df.to_hdf("swe_data.h5", key="key", mode="w")
+    m_df.to_hdf("m_data.h5", key="key", mode="w")
