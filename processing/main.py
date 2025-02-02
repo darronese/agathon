@@ -13,34 +13,7 @@ There are missing values between my CSV files, in that a row with (date, latitud
 
 How can I detect these missing values using Pandas?
 """
-# requires a lot of memory
-
-
-def find_missing_values(dfs):
-    merged_df = dfs[0]
-    for df in dfs[1:]:
-        merged_df = merged_df.merge(df, on=["date", "lat", "lon"], how="outer")
-
-    missing_values = merged_df.isnull().sum()
-
-    print(missing_values)
-
-
-# https://www.geeksforgeeks.org/working-with-missing-data-in-pandas/
-# found no missing values
-def find_empty_cells(df):
-    return df.isnull().sum()
-
-
-# found no missing dates
-def find_missing_dates(df):
-    df = df.set_index("date")
-    df.index = pd.to_datetime(df.index)
-    return pd.date_range(start="1990-01-01", end="2019-12-31").difference(df.index)
-
-
-def find_duplicate_dates(df):
-    return [i for i, v in df["date"].value_counts().iteritems() if v > 1]
+# NOTE: requires a lot of memory
 
 
 def path_to_column_name(path):
@@ -55,7 +28,32 @@ if __name__ == "__main__":
     dfs = []
     for path in csv_paths:
         df = pd.read_csv(path)
-        df = df.rename(columns={"variable_value": path_to_column_name(path)})
+        df = df.rename(
+            columns={"variable_value": path_to_column_name(path)[16:].lower()}
+        )
         dfs.append(df)
 
-    find_missing_values(dfs)
+    merged_df = dfs[0]
+    for df in dfs[1:]:
+        merged_df = merged_df.merge(df, on=["date", "lat", "lon"], how="outer")
+
+    merged_df.to_csv("data1.csv", index=False)
+
+"""
+# https://www.geeksforgeeks.org/working-with-missing-data-in-pandas/
+# found no missing values
+def find_empty_cells(df):
+    return df.isnull().sum()
+
+
+# found no missing dates
+def find_missing_dates(df):
+    df = df.set_index("date")
+    df.index = pd.to_datetime(df.index)
+    return pd.date_range(start="1990-01-01", end="2019-12-31").difference(df.index)
+
+
+# found duplicate dates; realised this is expected
+def find_duplicate_dates(df):
+    return [i for i, v in df["date"].value_counts().iteritems() if v > 1]
+"""
